@@ -7,19 +7,19 @@ import logging
 import sys
 import threading
 import time
+import traceback
 
 from pymodbus.server import StartSerialServer
 from pymodbus.constants import Endian
 from pymodbus.device import ModbusDeviceIdentification
-from pymodbus.transaction import ModbusRtuFramer
 from pymodbus.datastore import ModbusSlaveContext
 from pymodbus.datastore import ModbusServerContext
 from pymodbus.payload import BinaryPayloadBuilder
 
-
+# Protocol for WattNode register list: https://ctlsys.com/wp-content/uploads/2016/10/WNC-Modbus-Register-List-V18.xls
 def t_update(ctx, stop, module, device, refresh):
 
-    this_t = threading.currentThread()
+    this_t = threading.current_thread()
     logger = logging.getLogger()
 
     while not stop.is_set():
@@ -30,7 +30,7 @@ def t_update(ctx, stop, module, device, refresh):
                 logger.debug(f"{this_t.name}: no new values")
                 continue
 
-            block_1001 = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+            block_1001 = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
             block_1001.add_32bit_float(values.get("energy_active", 0)) # total active energy
             block_1001.add_32bit_float(values.get("import_energy_active", 0)) # imported active energy
             block_1001.add_32bit_float(values.get("energy_active", 0)) # total active energy non-reset
@@ -50,7 +50,7 @@ def t_update(ctx, stop, module, device, refresh):
             block_1001.add_32bit_float(values.get("frequency", 0)) # line frequency
             ctx.setValues(3, 1000, block_1001.to_registers())
 
-            block_1101 = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+            block_1101 = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
             block_1101.add_32bit_float(values.get("l1_energy_active", 0)) # total active energy l1
             block_1101.add_32bit_float(values.get("l2_energy_active", 0)) # total active energy l2
             block_1101.add_32bit_float(values.get("l3_energy_active", 0)) # total active energy l3
@@ -95,6 +95,7 @@ def t_update(ctx, stop, module, device, refresh):
             ctx.setValues(3, 1100, block_1101.to_registers())
         except Exception as e:
             logger.critical(f"{this_t.name}: {e}")
+            print(traceback.format_exc())
         finally:
             time.sleep(refresh)
 
@@ -157,7 +158,7 @@ if __name__ == "__main__":
 
                 slave_ctx = ModbusSlaveContext()
 
-                block_1601 = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+                block_1601 = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
                 block_1601.add_32bit_int(0) # config passcode
                 block_1601.add_16bit_int(confparser[meter].getint("ct_current", fallback=default_config["meters"]["ct_current"])) # ct rated current
                 block_1601.add_16bit_int(confparser[meter].getint("ct_current", fallback=default_config["meters"]["ct_current"])) # ct rated current l1
@@ -182,7 +183,7 @@ if __name__ == "__main__":
                 block_1601.add_16bit_int(0) # io pin mode
                 slave_ctx.setValues(3, 1600, block_1601.to_registers())
 
-                block_1651 = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+                block_1651 = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
                 block_1651.add_16bit_int(0) # apply config
                 block_1651.add_16bit_int(address) # modbus address
                 block_1651.add_16bit_int(4) # baud rate
@@ -191,7 +192,7 @@ if __name__ == "__main__":
                 block_1651.add_16bit_int(5) # message delay
                 slave_ctx.setValues(3, 1650, block_1651.to_registers())
 
-                block_1701 = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+                block_1701 = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
                 block_1701.add_32bit_int(confparser[meter].getint("serial_number", fallback=default_config["meters"]["serial_number"])) # serial number
                 block_1701.add_32bit_int(0) # uptime (s)
                 block_1701.add_32bit_int(0) # total uptime (s)
@@ -247,7 +248,7 @@ if __name__ == "__main__":
 
         StartSerialServer(
             context=server_ctx,
-            framer=ModbusRtuFramer,
+            framer="rtu",
             identity=identity,
             port=confparser["server"].get("device", fallback=default_config["server"]["device"]),
             baudrate=confparser["server"].get("baud", fallback=default_config["server"]["baud"]),
