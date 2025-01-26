@@ -71,7 +71,7 @@ def values(device):
     logger.debug(f"values: {values}")
 
     return {
-        "import_energy_active": values.get("import_energy_active", 0),
+        "energy_active": values.get("import_energy_active", 0) - values.get("export_energy_active", 0)),
         "power_active": values.get("power_active", 0),
         "l1_power_active": values.get("l1_power_active", 0),
         "l2_power_active": values.get("l2_power_active", 0),
