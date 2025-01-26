@@ -85,17 +85,18 @@ def values(device):
         "l23_voltage": values.get("l23_voltage", 0),
         "l31_voltage": values.get("l31_voltage", 0),
         "frequency": values.get("frequency", 0),
-        # "l1_energy_active"
-        # "l2_energy_active"
-        # "l3_energy_active"
+        "l1_energy_active": values.get("l1_import_energy_active", 0) - values.get("export_energy_active", 0)/3,
+        "l2_energy_active": values.get("l2_import_energy_active", 0) - values.get("export_energy_active", 0)/3,
+        "l3_energy_active": values.get("l3_import_energy_active", 0) - values.get("export_energy_active", 0)/3,
         "import_energy_active": values.get("import_energy_active", 0),
         "l1_import_energy_active": values.get("l1_import_energy_active", 0),
         "l2_import_energy_active": values.get("l2_import_energy_active", 0),
         "l3_import_energy_active": values.get("l3_import_energy_active", 0),
         "export_energy_active": values.get("export_energy_active", 0),
-        #"l1_export_energy_active"
-        #"l2_export_energy_active"
-        #"l3_export_energy_active"
+        "l1_export_energy_active": values.get("export_energy_active", 0)/3,
+        "l2_export_energy_active": values.get("export_energy_active", 0)/3,
+        "l3_export_energy_active": values.get("export_energy_active", 0)/3,
+        "energy_reactive": values.get("import_energy_reactive", 0) - values.get("export_energy_reactive", 0),
         #"l1_energy_reactive"
         #"l2_energy_reactive"
         #"l3_energy_reactive"
