@@ -213,6 +213,12 @@ if __name__ == "__main__":
                 block_1701.add_16bit_int(0) # error status 7
                 block_1701.add_16bit_int(0) # error status 8
                 slave_ctx.setValues(3, 1700, block_1701.to_registers())
+                
+                block_2128 = BinaryPayloadBuilder(byteorder=Endian.BIG, wordorder=Endian.LITTLE)
+                block_2128.add_16bit_int(0) # SolarEdge requests the value for the register 2127
+                                            # If you don't supply it, it will keep asking
+                                            # if you supply it, it will only ask it once
+                slave_ctx.setValues(3, 2127, block_2128.to_registers())
 
                 update_t_stop = threading.Event()
                 update_t = threading.Thread(
